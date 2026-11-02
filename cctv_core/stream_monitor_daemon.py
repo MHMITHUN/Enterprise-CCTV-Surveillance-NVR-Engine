@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Enterprise IP Camera RTSP Stream Heartbeat & Dropout Monitor
-Author: MD. Mahamudul Hasan (IT Officer)
+Author: MD. Mahamudul Hasan
 Repository: Enterprise-CCTV-Surveillance-NVR-Engine
 License: MIT
 

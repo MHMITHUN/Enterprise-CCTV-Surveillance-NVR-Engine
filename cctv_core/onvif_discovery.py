@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ONVIF Profile S/G Camera Device Discovery & Capability Inspector
-Author: MD. Mahamudul Hasan (IT Officer)
+Author: MD. Mahamudul Hasan
 Repository: Enterprise-CCTV-Surveillance-NVR-Engine
 License: MIT
 
