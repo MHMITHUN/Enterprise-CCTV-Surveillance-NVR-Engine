@@ -3,445 +3,1494 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enterprise IP CCTV Surveillance & NVR Storage Engine — NOC Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Enterprise IP CCTV Surveillance &amp; NVR Storage Engine — NOC Dashboard</title>
+  
+  <!-- Fonts: Inter & JetBrains Mono for High-Precision Engineering HUD -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    @keyframes scanline {
+    /* Hallmark & Linear Design System Tokens */
+    :root {
+      --canvas: #05070a;
+      --canvas-subtle: #080c12;
+      --surface-1: #0c111a;
+      --surface-2: #111824;
+      --surface-3: #172030;
+      --surface-active: #1d283c;
+      --hairline: rgba(255, 255, 255, 0.08);
+      --hairline-hover: rgba(255, 255, 255, 0.16);
+      --hairline-active: rgba(0, 210, 255, 0.4);
+      --ink: #f1f5f9;
+      --ink-muted: #94a3b8;
+      --ink-faint: #64748b;
+      --accent-cyan: #00d2ff;
+      --accent-cyan-soft: rgba(0, 210, 255, 0.12);
+      --accent-emerald: #10b981;
+      --accent-emerald-soft: rgba(16, 185, 129, 0.12);
+      --accent-amber: #f59e0b;
+      --accent-amber-soft: rgba(245, 158, 11, 0.12);
+      --accent-rose: #f43f5e;
+      --accent-rose-soft: rgba(244, 63, 94, 0.12);
+      --accent-violet: #8b5cf6;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      overflow-x: clip;
+      background-color: var(--canvas);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Container constraints */
+    .container-max {
+      max-width: 1440px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    /* Subtle background grid pattern */
+    .bg-grid-ambient {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    }
+
+    /* CRT scanline overlay */
+    .scanline-overlay {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 20;
+      opacity: 0.45;
+    }
+
+    /* Realistic moving radar sweep */
+    @keyframes sweep {
       0% { transform: translateY(-100%); }
       100% { transform: translateY(1000%); }
     }
-    .scanline {
+    .cctv-sweep {
       position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(to right, transparent, rgba(6, 182, 212, 0.7), transparent);
-      animation: scanline 4s linear infinite;
+      left: 0; right: 0; height: 3px;
+      background: linear-gradient(to right, transparent, rgba(0, 210, 255, 0.4), transparent);
+      animation: sweep 5s linear infinite;
+      pointer-events: none;
+      z-index: 15;
     }
-    .grid-cctv {
-      background-size: 20px 20px;
-      background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+
+    /* Clean Card Component */
+    .glass-card {
+      background-color: var(--surface-1);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+    .glass-card:hover {
+      border-color: var(--hairline-hover);
+    }
+
+    /* Button styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 1px solid var(--hairline);
+      background-color: var(--surface-2);
+      color: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      text-decoration: none;
+      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    .btn:hover {
+      background-color: var(--surface-3);
+      border-color: var(--hairline-hover);
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-cyan);
+      color: #030712;
+      border-color: transparent;
+      font-weight: 700;
+    }
+    .btn-primary:hover {
+      background-color: #38bdf8;
+      border-color: transparent;
+    }
+
+    .btn-danger {
+      background-color: var(--accent-rose-soft);
+      border-color: rgba(244, 63, 94, 0.35);
+      color: #fda4af;
+    }
+    .btn-danger:hover {
+      background-color: rgba(244, 63, 94, 0.22);
+      border-color: rgba(244, 63, 94, 0.5);
+    }
+
+    .btn-success {
+      background-color: var(--accent-emerald-soft);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #6ee7b7;
+    }
+    .btn-success:hover {
+      background-color: rgba(16, 185, 129, 0.22);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    /* Range slider custom styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--surface-3);
+      border-radius: 4px;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.6);
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Video feed canvas */
+    .cctv-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      background-color: #020406;
+    }
+
+    /* Drive Bay Chassis */
+    .disk-bay {
+      width: 100%;
+      height: 44px;
+      background: #090d14;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      transition: all 0.2s ease;
+    }
+    .disk-bay.active-data {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.06);
+    }
+    .disk-bay.active-parity {
+      border-color: rgba(0, 210, 255, 0.5);
+      background: rgba(0, 210, 255, 0.08);
+    }
+    .disk-bay.empty-slot {
+      opacity: 0.35;
+      border-style: dashed;
+    }
+
+    .status-led {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .led-emerald {
+      background-color: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .led-cyan {
+      background-color: #00d2ff;
+      box-shadow: 0 0 8px #00d2ff;
+    }
+    .led-rose {
+      background-color: #f43f5e;
+      box-shadow: 0 0 8px #f43f5e;
+      animation: blink 0.8s infinite;
+    }
+    .led-off {
+      background-color: #334155;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--surface-1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--surface-3);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--hairline-hover);
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
-  <!-- Top Navigation Bar -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
-        <span class="flex size-3 rounded-full bg-cyan-400 animate-pulse"></span>
+<body class="bg-grid-ambient min-h-screen">
+
+  <!-- TOP NOC COMMAND NAVIGATION -->
+  <header style="background: rgba(8, 12, 18, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--hairline); position: sticky; top: 0; z-index: 100;">
+    <div class="container-max" style="padding-top: 12px; padding-bottom: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+      
+      <!-- Brand & Status -->
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-cyan); display: block; box-shadow: 0 0 12px var(--accent-cyan);"></span>
+          <span style="position: absolute; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--accent-cyan); animation: blink 2s infinite;"></span>
+        </div>
         <div>
-          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            <i class="fa-solid fa-video text-cyan-400"></i>
-            Enterprise CCTV Surveillance & NVR Engine
-          </h1>
-          <p class="text-xs text-slate-400 font-mono">NOC Stream Monitor · H.265+ Storage Calculator · RAID 5 Topologies</p>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <h1 style="font-size: 15px; font-weight: 700; letter-spacing: -0.2px; color: #fff;">
+              Enterprise CCTV Surveillance &amp; NVR Telemetry Engine
+            </h1>
+            <span class="font-mono" style="font-size: 10px; padding: 2px 8px; border-radius: var(--radius-full); background: var(--accent-cyan-soft); color: var(--accent-cyan); border: 1px solid rgba(0,210,255,0.3); font-weight: 600;">
+              NOC v2.4 PRO
+            </span>
+          </div>
+          <p class="font-mono" style="font-size: 11px; color: var(--ink-faint); margin-top: 2px;">
+            Multi-Channel Stream Ingestion · H.265+ Storage Calculator · Hardware RAID 5 Dimensioning
+          </p>
         </div>
       </div>
-      <div class="flex items-center gap-3 font-mono text-xs">
-        <div class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded">
-          <span class="text-slate-400">RETENTION AUDIT:</span>
-          <span class="text-emerald-400 font-bold ml-1">RSC/WRAP &gt;= 30 DAYS</span>
+
+      <!-- Telemetry Gauges & Controls -->
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        
+        <!-- Live Audit Standard -->
+        <div class="glass-card font-mono" style="padding: 6px 12px; font-size: 11px; display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--ink-faint);">AUDIT STANDARD:</span>
+          <span style="color: var(--accent-emerald); font-weight: 700; display: flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-shield-halved"></i> WRAP &amp; RSC &ge; 30d
+          </span>
         </div>
-        <div class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded">
-          <span class="text-slate-400">NOC TIME:</span>
-          <span id="liveClock" class="text-cyan-400 font-bold ml-1">00:00:00</span>
+
+        <!-- Master Clock -->
+        <div class="glass-card font-mono" style="padding: 6px 12px; font-size: 11px; display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--ink-faint);">NOC TIME (UTC+6):</span>
+          <span id="masterClock" style="color: var(--accent-cyan); font-weight: 700;">00:00:00</span>
         </div>
-        <a href="https://github.com/MHMITHUN/Enterprise-CCTV-Surveillance-NVR-Engine" target="_blank"
-           class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1.5 rounded transition flex items-center gap-1.5">
+
+        <!-- Audio Alert Toggle -->
+        <button id="audioToggleBtn" onclick="toggleAudio()" class="btn" title="Toggle Synthesized Audio Alerts" style="padding: 6px 10px;">
+          <i id="audioIcon" class="fa-solid fa-volume-xmark text-slate-400"></i>
+          <span id="audioText">Muted</span>
+        </button>
+
+        <!-- GitHub Repository Button -->
+        <a href="https://github.com/MHMITHUN/Enterprise-CCTV-Surveillance-NVR-Engine" target="_blank" rel="noreferrer" class="btn btn-primary">
           <i class="fa-brands fa-github"></i>
-          <span>GitHub Repo</span>
+          <span>GitHub Code</span>
         </a>
+
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-    <!-- SECTION 1: 4-CHANNEL CCTV LIVE HUD STREAM SIMULATOR -->
+  <!-- MAIN NOC CONSOLE CONTAINER -->
+  <main class="container-max" style="padding-top: 24px; padding-bottom: 48px; display: flex; flex-direction: column; gap: 28px;">
+
+    <!-- TOP SECTION: LIVE SURVEILLANCE MATRIX & CONTROLS -->
     <section>
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+      <!-- Section Header & Controls -->
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 16px;">
         <div>
-          <span class="text-xs font-mono text-cyan-400 font-bold tracking-wider uppercase">MODULE 01 · STREAM MONITORING</span>
-          <h2 class="text-xl font-bold text-white">Live RTSP Channel Grid & Video-Loss Heartbeat</h2>
+          <div class="font-mono" style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 0.8px; text-transform: uppercase;">
+            MODULE 01 · REAL-TIME RTSP ONVIF INGESTION
+          </div>
+          <h2 style="font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: #fff; margin-top: 2px;">
+            Factory CCTV Surveillance Grid &amp; Dropout Sentinel
+          </h2>
+          <p style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">
+            Simulating 64-channel industrial IP surveillance with live camera video synthesis, AI bounding boxes, and automatic video-loss alert dispatch.
+          </p>
         </div>
-        <div class="flex gap-2">
-          <button id="toggleDropBtn" onclick="toggleStreamDrop()"
-                  class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono font-bold px-3 py-2 rounded transition flex items-center gap-2">
+
+        <!-- View Controls & Simulation Triggers -->
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          
+          <!-- Layout Switcher -->
+          <div class="glass-card" style="padding: 3px; display: flex; gap: 2px;">
+            <button id="btnLayout2x2" onclick="setLayout('2x2')" class="btn" style="padding: 5px 9px; font-size: 11px; background: var(--surface-3); border-color: var(--accent-cyan);" title="2x2 Quad Grid">
+              <i class="fa-solid fa-table-cells-large"></i> 2&times;2 Grid
+            </button>
+            <button id="btnLayoutDirector" onclick="setLayout('director')" class="btn" style="padding: 5px 9px; font-size: 11px; background: transparent; border-color: transparent;" title="Director 1+3 Focus">
+              <i class="fa-solid fa-square-poll-vertical"></i> Director View
+            </button>
+          </div>
+
+          <!-- IR Night Vision Filter Toggle -->
+          <button id="irToggleBtn" onclick="toggleVisionMode()" class="btn" style="padding: 7px 12px;">
+            <i class="fa-solid fa-eye-low-vision" style="color: #38bdf8;"></i>
+            <span id="visionModeLabel">Mode: Daylight</span>
+          </button>
+
+          <!-- Video Drop Trigger -->
+          <button id="dropBtn" onclick="toggleStreamLoss()" class="btn btn-danger" style="padding: 7px 14px;">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            <span id="dropBtnText">Simulate Stream Drop (CAM-03)</span>
+            <span id="dropBtnText">Simulate RTSP Loss (CAM-03)</span>
           </button>
-          <button onclick="resetStreams()"
-                  class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono px-3 py-2 rounded transition">
-            Reset Grid
+
+          <!-- Reset Button -->
+          <button onclick="resetCameras()" class="btn" style="padding: 7px 12px;" title="Reset all cameras to nominal state">
+            <i class="fa-solid fa-arrows-rotate"></i> Reset
           </button>
         </div>
       </div>
 
-      <!-- 4 Channel Video Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- CAM 01 -->
-        <div class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group">
-          <div class="scanline"></div>
-          <div class="absolute inset-0 grid-cctv opacity-50"></div>
-          <!-- Channel HUD -->
-          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
-            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
-              <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
-              <span class="font-bold text-emerald-400">REC</span>
-              <span class="text-slate-300">CAM-01 · FACTORY MAIN GATE TURNSTILES</span>
+      <!-- CAMERA GRID CONTAINER -->
+      <div id="cctvGridContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+        
+        <!-- CAM 01: MAIN GATE ACCESS -->
+        <div class="glass-card" style="position: relative; overflow: hidden; border-radius: var(--radius-md); aspect-ratio: 16/9; background: #010305;">
+          <div class="scanline-overlay"></div>
+          <div class="cctv-sweep"></div>
+          <canvas id="canvasCam1" class="cctv-canvas"></canvas>
+
+          <!-- HUD Top Info -->
+          <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); backdrop-filter: blur(8px); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <span class="status-led led-emerald"></span>
+              <span style="font-weight: 700; color: var(--accent-emerald);">REC</span>
+              <span style="color: #e2e8f0;">CAM-01 · FACTORY MAIN GATE TURNSTILES</span>
             </div>
-            <div class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
-              1080p FHD · 30 FPS · 2048 Kbps
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: var(--accent-cyan);">
+              1080p FHD · 30.0 FPS · 2048 Kbps
             </div>
           </div>
-          <!-- Center Visual Graphic -->
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
-            <i class="fa-solid fa-person-walking text-4xl mb-2 text-slate-500"></i>
-            <span class="font-mono text-xs tracking-widest text-slate-400">GATE 01 PERIMETER ACCESS FEED</span>
+
+          <!-- HUD Bottom Bar -->
+          <div style="position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <span class="font-mono" style="font-size: 10px; color: var(--ink-muted); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              IP: 192.168.20.101 · ONVIF S · H.265+
+            </span>
+            <span class="font-mono hud-time" style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              00:00:00
+            </span>
           </div>
-          <!-- Bottom Info -->
-          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
-            <span>CODEC: H.265+ (ONVIF PROFILE S)</span>
-            <span class="hudTime text-emerald-400">--:--:--</span>
+
+          <!-- Quick PTZ Snapshot Button -->
+          <div style="position: absolute; bottom: 38px; right: 12px; z-index: 30;">
+            <button onclick="captureSnapshot(1, 'CAM-01-MainGate')" class="btn" style="padding: 4px 8px; font-size: 10px; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);">
+              <i class="fa-solid fa-camera"></i> Snapshot
+            </button>
           </div>
         </div>
 
-        <!-- CAM 02 -->
-        <div class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group">
-          <div class="scanline"></div>
-          <div class="absolute inset-0 grid-cctv opacity-50"></div>
-          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
-            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
-              <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
-              <span class="font-bold text-emerald-400">REC</span>
-              <span class="text-slate-300">CAM-02 · SEWING PRODUCTION LINE 04</span>
+        <!-- CAM 02: PRODUCTION SEWING FLOOR -->
+        <div class="glass-card" style="position: relative; overflow: hidden; border-radius: var(--radius-md); aspect-ratio: 16/9; background: #010305;">
+          <div class="scanline-overlay"></div>
+          <div class="cctv-sweep"></div>
+          <canvas id="canvasCam2" class="cctv-canvas"></canvas>
+
+          <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); backdrop-filter: blur(8px); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <span class="status-led led-emerald"></span>
+              <span style="font-weight: 700; color: var(--accent-emerald);">REC</span>
+              <span style="color: #e2e8f0;">CAM-02 · SEWING PRODUCTION LINE 04</span>
             </div>
-            <div class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
-              1080p FHD · 25 FPS · 1850 Kbps
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: var(--accent-cyan);">
+              1080p FHD · 25.0 FPS · 1850 Kbps
             </div>
           </div>
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
-            <i class="fa-solid fa-industry text-4xl mb-2 text-slate-500"></i>
-            <span class="font-mono text-xs tracking-widest text-slate-400">PRODUCTION WORKER SAFETY FEED</span>
+
+          <div style="position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <span class="font-mono" style="font-size: 10px; color: var(--ink-muted); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              IP: 192.168.20.102 · ZONE: FACTORY FLOOR · AI PPE OK
+            </span>
+            <span class="font-mono hud-time" style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              00:00:00
+            </span>
           </div>
-          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
-            <span>CODEC: H.265+ (DYNAMIC MOTION)</span>
-            <span class="hudTime text-emerald-400">--:--:--</span>
+
+          <div style="position: absolute; bottom: 38px; right: 12px; z-index: 30;">
+            <button onclick="captureSnapshot(2, 'CAM-02-SewingFloor')" class="btn" style="padding: 4px 8px; font-size: 10px; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);">
+              <i class="fa-solid fa-camera"></i> Snapshot
+            </button>
           </div>
         </div>
 
-        <!-- CAM 03 (Alert Target) -->
-        <div id="cam3Container" class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group transition-all">
-          <div id="cam3Scan" class="scanline"></div>
-          <div class="absolute inset-0 grid-cctv opacity-50"></div>
-          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
-            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
-              <span id="cam3Dot" class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
-              <span id="cam3StatusText" class="font-bold text-emerald-400">REC</span>
-              <span class="text-slate-300">CAM-03 · SERVER ROOM & IT RACK NOC</span>
+        <!-- CAM 03: SERVER ROOM & IT NOC RACK (ALERT TARGET) -->
+        <div id="cam3Wrapper" class="glass-card" style="position: relative; overflow: hidden; border-radius: var(--radius-md); aspect-ratio: 16/9; background: #010305;">
+          <div id="cam3Scan" class="scanline-overlay"></div>
+          <div id="cam3Sweep" class="cctv-sweep"></div>
+          <canvas id="canvasCam3" class="cctv-canvas"></canvas>
+
+          <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); backdrop-filter: blur(8px); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <span id="cam3Led" class="status-led led-emerald"></span>
+              <span id="cam3RecBadge" style="font-weight: 700; color: var(--accent-emerald);">REC</span>
+              <span id="cam3Title" style="color: #e2e8f0;">CAM-03 · SERVER ROOM &amp; IT NOC RACK</span>
             </div>
-            <div id="cam3Specs" class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
-              4MP QHD · 30 FPS · 4096 Kbps
+            <div id="cam3Specs" class="font-mono" style="background: rgba(3, 7, 18, 0.82); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: var(--accent-cyan);">
+              4MP QHD · 30.0 FPS · 4096 Kbps
             </div>
           </div>
-          <div id="cam3Center" class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
-            <i class="fa-solid fa-server text-4xl mb-2 text-slate-500"></i>
-            <span class="font-mono text-xs tracking-widest text-slate-400">CORE SERVER RACK & UPS MONITORED</span>
+
+          <div style="position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <span id="cam3Sub" class="font-mono" style="font-size: 10px; color: var(--ink-muted); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              IP: 192.168.20.103 · HIGH SECURITY ZONE · 21.4°C
+            </span>
+            <span class="font-mono hud-time" style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              00:00:00
+            </span>
           </div>
-          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
-            <span>CODEC: H.265+ (RESTRICTED ZONE)</span>
-            <span class="hudTime text-emerald-400">--:--:--</span>
+
+          <div style="position: absolute; bottom: 38px; right: 12px; z-index: 30;">
+            <button onclick="captureSnapshot(3, 'CAM-03-ServerRoom')" class="btn" style="padding: 4px 8px; font-size: 10px; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);">
+              <i class="fa-solid fa-camera"></i> Snapshot
+            </button>
           </div>
         </div>
 
-        <!-- CAM 04 -->
-        <div class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group">
-          <div class="scanline"></div>
-          <div class="absolute inset-0 grid-cctv opacity-50"></div>
-          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
-            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
-              <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
-              <span class="font-bold text-emerald-400">REC</span>
-              <span class="text-slate-300">CAM-04 · FINISHED GOODS SHIPPING DOCK</span>
+        <!-- CAM 04: FINISHED GOODS CARGO DOCK -->
+        <div class="glass-card" style="position: relative; overflow: hidden; border-radius: var(--radius-md); aspect-ratio: 16/9; background: #010305;">
+          <div class="scanline-overlay"></div>
+          <div class="cctv-sweep"></div>
+          <canvas id="canvasCam4" class="cctv-canvas"></canvas>
+
+          <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); backdrop-filter: blur(8px); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <span class="status-led led-emerald"></span>
+              <span style="font-weight: 700; color: var(--accent-emerald);">REC</span>
+              <span style="color: #e2e8f0;">CAM-04 · FINISHED GOODS SHIPPING DOCK</span>
             </div>
-            <div class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
-              1080p FHD · 25 FPS · 2048 Kbps
+            <div class="font-mono" style="background: rgba(3, 7, 18, 0.82); border: 1px solid var(--hairline); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: var(--accent-cyan);">
+              1080p FHD · 25.0 FPS · 2048 Kbps
             </div>
           </div>
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
-            <i class="fa-solid fa-truck text-4xl mb-2 text-slate-500"></i>
-            <span class="font-mono text-xs tracking-widest text-slate-400">CARGO BAY & CARTON DISPATCH FEED</span>
+
+          <div style="position: absolute; bottom: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 25; pointer-events: none;">
+            <span class="font-mono" style="font-size: 10px; color: var(--ink-muted); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              IP: 192.168.20.104 · WRAP EXPORT COMPLIANT · PALLET VERIFIED
+            </span>
+            <span class="font-mono hud-time" style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px;">
+              00:00:00
+            </span>
           </div>
-          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
-            <span>CODEC: H.265+ (WRAP AUDITED DOCK)</span>
-            <span class="hudTime text-emerald-400">--:--:--</span>
+
+          <div style="position: absolute; bottom: 38px; right: 12px; z-index: 30;">
+            <button onclick="captureSnapshot(4, 'CAM-04-ShippingDock')" class="btn" style="padding: 4px 8px; font-size: 10px; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);">
+              <i class="fa-solid fa-camera"></i> Snapshot
+            </button>
           </div>
         </div>
+
       </div>
 
-      <!-- Incident Log Console -->
-      <div class="mt-4 bg-slate-900/90 border border-slate-800 rounded-xl p-4 font-mono text-xs">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
-          <span class="font-bold text-slate-300 flex items-center gap-2">
-            <i class="fa-solid fa-terminal text-cyan-400"></i>
-            NOC Daemon Heartbeat Event Log
-          </span>
-          <span class="text-[10px] text-emerald-400">SYSTEM HEALTH: 100% (ALL STREAMS LIVE)</span>
+      <!-- STREAM TELEMETRY BAR & INCIDENT TERMINAL -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+        
+        <!-- Sparkline Bandwidth Ingress Monitor -->
+        <div class="glass-card" style="padding: 14px 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="font-mono" style="font-size: 11px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-chart-line" style="color: var(--accent-cyan);"></i>
+              NVR INGRESS THROUGHPUT (LAST 60s)
+            </div>
+            <span id="liveBitrateVal" class="font-mono" style="font-size: 12px; font-weight: 700; color: var(--accent-cyan);">
+              10.04 Mbps
+            </span>
+          </div>
+          <div style="height: 60px; width: 100%; position: relative;">
+            <canvas id="bitrateSparkline" style="width: 100%; height: 100%; display: block;"></canvas>
+          </div>
+          <div class="font-mono" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-faint); margin-top: 4px;">
+            <span>-60 SECONDS</span>
+            <span>SWITCH PORT: GBE 0/1 (VLAN 20 CCTV)</span>
+            <span>REAL-TIME INGRESS</span>
+          </div>
         </div>
-        <div id="incidentLog" class="space-y-1 text-slate-400 max-h-24 overflow-y-auto">
-          <div>[INFO] Heartbeat polling active on port 554 across 4 RTSP channels. Ping latency avg: 1.4ms.</div>
-          <div>[INFO] H.265+ stream integrity verified on Hikvision NVR 7616NXI-I2.</div>
+
+        <!-- Incident & Heartbeat Event Console -->
+        <div class="glass-card" style="padding: 14px 18px; display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--hairline); padding-bottom: 6px;">
+            <div class="font-mono" style="font-size: 11px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-terminal" style="color: var(--accent-emerald);"></i>
+              NOC STREAM SENTINEL DAEMON LOG
+            </div>
+            <span id="daemonStatus" class="font-mono" style="font-size: 10px; color: var(--accent-emerald); font-weight: 600;">
+              DAEMON: ACTIVE (PORT 554)
+            </span>
+          </div>
+          <div id="incidentLogConsole" class="font-mono" style="font-size: 11px; color: var(--ink-muted); height: 60px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 3px;">
+            <div style="color: #64748b;">[SYS] Polling ONVIF Profile S on 192.168.20.0/24 subnet. Latency jitter: &lt;1.2ms.</div>
+            <div style="color: #64748b;">[NVR] All 4 primary RTSP streams synchronized to Hikvision NVR DS-7616NXI.</div>
+          </div>
         </div>
+
       </div>
     </section>
 
-    <!-- SECTION 2: INTERACTIVE NVR STORAGE & RAID 5 CALCULATOR -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-      <div class="border-b border-slate-800 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <!-- SECTION 2: INTERACTIVE NVR STORAGE & HARDWARE RAID 5 CALCULATOR -->
+    <section class="glass-card" style="padding: 24px; border-radius: var(--radius-lg); background: linear-gradient(180deg, #0d121c 0%, #080c13 100%);">
+      
+      <!-- Module Title -->
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 1px solid var(--hairline); padding-bottom: 16px; margin-bottom: 24px;">
         <div>
-          <span class="text-xs font-mono text-cyan-400 font-bold tracking-wider uppercase">MODULE 02 · ENGINEERING CALCULATOR</span>
-          <h2 class="text-xl font-bold text-white">NVR Storage &amp; Enterprise RAID 5 Drive Dimensioning</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Calculates byte-exact storage and network ingestion based on Accord/RSC 30-day compliance mandates.</p>
+          <div class="font-mono" style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 0.8px; text-transform: uppercase;">
+            MODULE 02 · HARDWARE DIMENSIONING &amp; STORAGE MATHEMATICS
+          </div>
+          <h2 style="font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: #fff; margin-top: 2px;">
+            NVR Video Storage &amp; Enterprise RAID 5 Drive Array Dimensioning
+          </h2>
+          <p style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">
+            Calculates exact bit-level disk allocation, RAID 5 fault tolerance, and Accord/RSC 30-day compliance based on H.265+ GOP compression models.
+          </p>
         </div>
-        <div class="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-cyan-300 font-mono text-xs">
-          <i class="fa-solid fa-calculator"></i>
-          <span>Dynamic Storage Engine</span>
+
+        <div class="glass-card font-mono" style="padding: 6px 14px; font-size: 11px; display: flex; align-items: center; gap: 8px; border-color: rgba(0, 210, 255, 0.3); background: rgba(0, 210, 255, 0.05);">
+          <i class="fa-solid fa-microchip" style="color: var(--accent-cyan);"></i>
+          <span style="color: var(--accent-cyan); font-weight: 700;">Dynamic Hardware Engine</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Controls & Calculations Grid -->
+      <div style="display: grid; grid-template-columns: 5fr 7fr; gap: 32px;">
+        
         <!-- Controls Column (Left) -->
-        <div class="lg:col-span-5 space-y-5">
-          <!-- Camera Count Slider -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- Control 1: Camera Count Slider -->
           <div>
-            <div class="flex justify-between items-center mb-1.5 font-mono text-xs">
-              <label class="text-slate-300 font-bold">Total IP Cameras:</label>
-              <span id="camCountLabel" class="text-cyan-400 font-bold text-sm bg-slate-800 px-2 py-0.5 rounded border border-slate-700">32 Cameras</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="font-mono" style="font-size: 12px; font-weight: 700; color: var(--ink);">Total IP Cameras Ingested:</label>
+              <span id="labelCamCount" class="font-mono" style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); background: var(--surface-3); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--hairline);">
+                32 Cameras
+              </span>
             </div>
-            <input type="range" id="camCountInput" min="4" max="128" step="4" value="32" oninput="calculateStorage()"
-                   class="w-full accent-cyan-400 cursor-pointer">
-            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
-              <span>4 Ch</span>
+            <input type="range" id="inputCamCount" min="4" max="128" step="4" value="32" oninput="runStorageCalculator()">
+            <div class="font-mono" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-faint); margin-top: 4px;">
+              <span>4 Ch (Mini)</span>
               <span>32 Ch (Standard)</span>
-              <span>64 Ch (Large)</span>
-              <span>128 Ch (Enterprise)</span>
+              <span>64 Ch (Large Factory)</span>
+              <span>128 Ch (Campus)</span>
             </div>
           </div>
 
-          <!-- Retention Days Slider -->
+          <!-- Control 2: Retention Days Slider -->
           <div>
-            <div class="flex justify-between items-center mb-1.5 font-mono text-xs">
-              <label class="text-slate-300 font-bold">Video Retention Days:</label>
-              <span id="retentionLabel" class="text-emerald-400 font-bold text-sm bg-slate-800 px-2 py-0.5 rounded border border-slate-700">30 Days (Audit Standard)</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label class="font-mono" style="font-size: 12px; font-weight: 700; color: var(--ink);">Continuous Retention Period:</label>
+              <span id="labelRetention" class="font-mono" style="font-size: 13px; font-weight: 700; color: var(--accent-emerald); background: var(--surface-3); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--hairline);">
+                30 Days (Audit Standard)
+              </span>
             </div>
-            <input type="range" id="retentionInput" min="7" max="90" step="1" value="30" oninput="calculateStorage()"
-                   class="w-full accent-emerald-400 cursor-pointer">
-            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+            <input type="range" id="inputRetention" min="7" max="90" step="1" value="30" oninput="runStorageCalculator()">
+            <div class="font-mono" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-faint); margin-top: 4px;">
               <span>7 Days</span>
-              <span>30 Days (Audit Min)</span>
+              <span style="color: var(--accent-emerald); font-weight: 600;">30 Days (Mandatory Minimum)</span>
               <span>60 Days</span>
               <span>90 Days</span>
             </div>
           </div>
 
-          <!-- Resolution Selector -->
+          <!-- Control 3: Stream Resolution Selection -->
           <div>
-            <label class="block text-xs font-mono text-slate-300 font-bold mb-1.5">Stream Resolution:</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button onclick="setResolution('1080p', 2.0)" id="btn-1080p"
-                      class="res-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition">
-                1080p FHD
+            <label class="font-mono" style="font-size: 12px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 8px;">
+              Stream Sensor Resolution:
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+              <button id="resBtn1080p" onclick="selectResolution('1080p', 2.0)" class="btn" style="border-color: var(--accent-cyan); background: var(--surface-3); color: var(--accent-cyan); font-weight: 700;">
+                1080p FHD (2Mbps)
               </button>
-              <button onclick="setResolution('4MP', 4.0)" id="btn-4MP"
-                      class="res-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition">
-                4MP QHD
+              <button id="resBtn4MP" onclick="selectResolution('4MP', 4.0)" class="btn">
+                4MP QHD (4Mbps)
               </button>
-              <button onclick="setResolution('4K', 8.0)" id="btn-4K"
-                      class="res-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition">
-                4K UHD
+              <button id="resBtn4K" onclick="selectResolution('4K', 8.0)" class="btn">
+                4K UHD (8Mbps)
               </button>
             </div>
           </div>
 
-          <!-- Codec Mode Toggle -->
+          <!-- Control 4: Codec Efficiency -->
           <div>
-            <label class="block text-xs font-mono text-slate-300 font-bold mb-1.5">Compression Codec:</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="setCodec('H265')" id="btn-codec-h265"
-                      class="codec-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition">
-                H.265+ (Smart 50% Saver)
+            <label class="font-mono" style="font-size: 12px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 8px;">
+              Video Compression Codec:
+            </label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button id="codecBtnH265" onclick="selectCodec('H265')" class="btn" style="border-color: var(--accent-cyan); background: var(--surface-3); color: var(--accent-cyan); font-weight: 700;">
+                <i class="fa-solid fa-bolt"></i> H.265+ (Smart 50% Saver)
               </button>
-              <button onclick="setCodec('H264')" id="btn-codec-h264"
-                      class="codec-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition">
-                Legacy H.264
+              <button id="codecBtnH264" onclick="selectCodec('H264')" class="btn">
+                Legacy H.264 (Unoptimized)
               </button>
             </div>
           </div>
+
         </div>
 
-        <!-- Output Cards (Right) -->
-        <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
-            <!-- Card 1: Net Storage -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-              <span class="text-[10px] text-slate-400 uppercase">NET STORAGE REQUIRED</span>
-              <div class="text-3xl font-extrabold text-cyan-400 mt-1" id="outStorage">19.8 TB</div>
-              <p class="text-xs text-slate-400 mt-1" id="outBitrateFormula">32 cams × 1.0 Mbps × 30 days continuous</p>
-            </div>
-
-            <!-- Card 2: Network Bandwidth -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-              <span class="text-[10px] text-slate-400 uppercase">UPLINK INGRESS BANDWIDTH</span>
-              <div class="text-3xl font-extrabold text-amber-400 mt-1" id="outBandwidth">32 Mbps</div>
-              <p class="text-xs text-slate-400 mt-1">Recommended PoE Switch: Gigabit 1000 Mbps Uplink</p>
-            </div>
-
-            <!-- Card 3: RAID 5 Drives -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-              <span class="text-[10px] text-slate-400 uppercase">RAID 5 SURVEILLANCE DRIVES</span>
-              <div class="text-3xl font-extrabold text-emerald-400 mt-1" id="outDrives">4 Drives (8TB)</div>
-              <p class="text-xs text-slate-400 mt-1" id="outRaidBreakdown">3 Data Disks + 1 Parity Fault-Tolerant</p>
-            </div>
-
-            <!-- Card 4: Audit Status -->
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-              <span class="text-[10px] text-slate-400 uppercase">WRAP &amp; RSC COMPLIANCE</span>
-              <div class="text-xl font-bold text-emerald-400 mt-1 flex items-center gap-1.5">
-                <i class="fa-solid fa-circle-check"></i>
-                <span id="outAuditStatus">PASSED · 30 DAYS</span>
+        <!-- Output Cards & Disk Bay Visualization (Right) -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          
+          <!-- 4 Metric Cards -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            
+            <!-- Metric 1: Net Storage -->
+            <div class="glass-card" style="padding: 16px; background: #070a0f;">
+              <div class="font-mono" style="font-size: 10px; color: var(--ink-faint); text-transform: uppercase; font-weight: 600;">
+                NET USABLE STORAGE NEEDED
               </div>
-              <p class="text-xs text-slate-400 mt-1">Meets Accord/RSC mandatory storage requirements.</p>
+              <div id="statNetStorage" class="font-mono" style="font-size: 26px; font-weight: 800; color: var(--accent-cyan); margin-top: 4px;">
+                9.9 TB
+              </div>
+              <div id="statFormula" class="font-mono" style="font-size: 11px; color: var(--ink-muted); margin-top: 4px;">
+                32 cams &times; 1.0 Mbps &times; 30d
+              </div>
+            </div>
+
+            <!-- Metric 2: Network Ingress Bandwidth -->
+            <div class="glass-card" style="padding: 16px; background: #070a0f;">
+              <div class="font-mono" style="font-size: 10px; color: var(--ink-faint); text-transform: uppercase; font-weight: 600;">
+                NETWORK INGRESS THROUGHPUT
+              </div>
+              <div id="statBandwidth" class="font-mono" style="font-size: 26px; font-weight: 800; color: var(--accent-amber); margin-top: 4px;">
+                32 Mbps
+              </div>
+              <div class="font-mono" style="font-size: 11px; color: var(--ink-muted); margin-top: 4px;">
+                Required Switch: 1000 Mbps Gigabit
+              </div>
+            </div>
+
+            <!-- Metric 3: Total Hard Drives Required -->
+            <div class="glass-card" style="padding: 16px; background: #070a0f;">
+              <div class="font-mono" style="font-size: 10px; color: var(--ink-faint); text-transform: uppercase; font-weight: 600;">
+                RAID 5 DRIVES (SEAGATE 8TB)
+              </div>
+              <div id="statDriveCount" class="font-mono" style="font-size: 26px; font-weight: 800; color: var(--accent-emerald); margin-top: 4px;">
+                3 Disks (24 TB Raw)
+              </div>
+              <div id="statParity" class="font-mono" style="font-size: 11px; color: var(--ink-muted); margin-top: 4px;">
+                2 Data Disks + 1 Parity Fault-Tolerant
+              </div>
+            </div>
+
+            <!-- Metric 4: Audit Compliance Badge -->
+            <div class="glass-card" style="padding: 16px; background: #070a0f;">
+              <div class="font-mono" style="font-size: 10px; color: var(--ink-faint); text-transform: uppercase; font-weight: 600;">
+                WRAP &amp; RSC AUDIT VERDICT
+              </div>
+              <div id="statAuditVerdict" class="font-mono" style="font-size: 18px; font-weight: 800; color: var(--accent-emerald); margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-circle-check"></i> PASSED (30 DAYS)
+              </div>
+              <div id="statAuditDetail" class="font-mono" style="font-size: 11px; color: var(--ink-muted); margin-top: 4px;">
+                Meets Accord/WRAP industrial video rule
+              </div>
+            </div>
+
+          </div>
+
+          <!-- PHYSICAL 16-BAY NVR CHASSIS SIMULATOR -->
+          <div class="glass-card" style="padding: 16px; background: #05080d;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div class="font-mono" style="font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-server" style="color: var(--accent-cyan);"></i>
+                PHYSICAL 16-BAY NVR HARD DRIVE CHASSIS (HIKVISION DS-9664NXI-I8)
+              </div>
+              <div class="font-mono" style="font-size: 10px; color: var(--ink-muted); display: flex; align-items: center; gap: 12px;">
+                <span style="display: flex; align-items: center; gap: 4px;"><span class="status-led led-emerald"></span> Data Disk</span>
+                <span style="display: flex; align-items: center; gap: 4px;"><span class="status-led led-cyan"></span> RAID 5 Parity</span>
+                <span style="display: flex; align-items: center; gap: 4px;"><span class="status-led led-off"></span> Unallocated Bay</span>
+              </div>
+            </div>
+
+            <!-- 16 Drive Slots Grid (8x2) -->
+            <div id="chassisDiskGrid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;">
+              <!-- Dynamically populated by JS -->
+            </div>
+            
+            <div class="font-mono" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-faint); margin-top: 10px; border-top: 1px solid var(--hairline); padding-top: 8px;">
+              <span>HARDWARE: Hardware RAID 5 Controller (LSI MegaRAID SAS / SATA 6Gbps)</span>
+              <span>HOT-SWAP SUPPORTED · ZERO DROPPED FRAMES</span>
             </div>
           </div>
 
-          <!-- Architecture Visual Note -->
-          <div class="bg-slate-950 border border-cyan-500/20 rounded-xl p-4 text-xs font-mono text-slate-300">
-            <div class="flex items-center gap-2 text-cyan-400 font-bold mb-1">
-              <i class="fa-solid fa-shield-halved"></i>
-              <span>Hardware Storage Architecture Specification:</span>
-            </div>
-            <p class="text-slate-400 leading-relaxed">
-              Recommended: Hikvision DS-9664NXI-I8 / Dahua NVR5864 with Seagate SkyHawk AI 8TB 7200 RPM enterprise surveillance HDDs configured in hardware RAID 5. Provides 1-disk fault tolerance without recording interruption.
-            </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SECTION 3: ENTERPRISE NETWORK TOPOLOGY & COMPLIANCE ARCHITECTURE -->
+    <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      
+      <!-- Card A: Industrial CCTV Topology Specification -->
+      <div class="glass-card" style="padding: 20px;">
+        <div class="font-mono" style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 0.8px; text-transform: uppercase;">
+          ARCHITECTURE ARCHETYPE
+        </div>
+        <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-top: 4px; margin-bottom: 12px;">
+          Network Segmentation &amp; Security Isolation (VLAN 20)
+        </h3>
+        
+        <div class="font-mono" style="font-size: 12px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 10px; line-height: 1.6;">
+          <div style="background: var(--surface-2); padding: 10px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
+            <strong style="color: #fff;">802.1Q VLAN 20 (CCTV):</strong> 
+            Assigned dedicated subnet <code style="color: var(--accent-cyan);">192.168.20.0/24</code>. All IP cameras reside on isolated switches without WAN routing.
+          </div>
+          <div style="background: var(--surface-2); padding: 10px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-emerald);">
+            <strong style="color: #fff;">MikroTik Firewall Drop:</strong>
+            WAN-to-CCTV firewall drop rules prevent Mirai/botnet infiltration into IP camera firmware while allowing dual NIC on NVR for internal client viewing.
+          </div>
+          <div style="background: var(--surface-2); padding: 10px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-amber);">
+            <strong style="color: #fff;">PoE+ Power Budget:</strong>
+            Gigabit 24-Port 802.3at PoE+ switches provisioned at 30W/port (Max 370W switch budget) ensuring stable IR LED activation at night.
           </div>
         </div>
       </div>
+
+      <!-- Card B: Export & Documentation Actions -->
+      <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="font-mono" style="font-size: 11px; font-weight: 700; color: var(--accent-emerald); letter-spacing: 0.8px; text-transform: uppercase;">
+            AUDIT CERTIFICATION &amp; EXPORT
+          </div>
+          <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin-top: 4px; margin-bottom: 8px;">
+            Compliance Documentation &amp; CLI Diagnostic Utilities
+          </h3>
+          <p style="font-size: 12px; color: var(--ink-muted); margin-bottom: 16px;">
+            Export configuration blueprints and compliance specs to verify retention policies with international buyer audit teams.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button onclick="exportAuditCertificate()" class="btn btn-success" style="justify-content: flex-start; padding: 10px 14px;">
+              <i class="fa-solid fa-file-shield" style="font-size: 14px;"></i>
+              <span>Export RSC / WRAP 30-Day Audit Compliance Spec (.JSON)</span>
+            </button>
+            <button onclick="copyRtspCommand()" class="btn" style="justify-content: flex-start; padding: 10px 14px;">
+              <i class="fa-solid fa-terminal" style="font-size: 14px; color: var(--accent-cyan);"></i>
+              <span id="copyCliText">Copy ONVIF RTSP Python Daemon Command</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="font-mono" style="font-size: 11px; color: var(--ink-faint); margin-top: 14px; border-top: 1px solid var(--hairline); padding-top: 10px;">
+          <span>STANDARDS COMPLIANT: ACCORD / RSC · WRAP · SEDEX · C-TPAT · ISO 27001</span>
+        </div>
+      </div>
+
     </section>
+
   </main>
 
-  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500 font-mono">
-    Developed &amp; Maintained by <span class="text-slate-300 font-bold">MD. Mahamudul Hasan</span> · MIT License
+  <!-- FOOTER: CLEAN MAINTAINER & LICENSE CREDITS -->
+  <footer style="border-top: 1px solid var(--hairline); background: var(--canvas-subtle); padding: 24px 0; text-align: center;">
+    <div class="container-max font-mono" style="font-size: 12px; color: var(--ink-muted);">
+      Developed &amp; Maintained by <a href="https://github.com/MHMITHUN" target="_blank" style="color: var(--ink); font-weight: 700; text-decoration: none;">MD. Mahamudul Hasan</a> · Released under the <span style="color: var(--accent-cyan);">MIT License</span>
+    </div>
   </footer>
 
+  <!-- ============================================================== -->
+  <!-- JAVASCRIPT: SURVEILLANCE VIDEO SYNTHESIS & TELEMETRY ENGINE    -->
+  <!-- ============================================================== -->
   <script>
-    // State
-    let currentResMbps = 2.0;
-    let currentCodec = 'H265';
-    let isDropped = false;
+    // Audio synthesizer context
+    let audioCtx = null;
+    let isAudioEnabled = false;
 
-    // Clock
+    function toggleAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      isAudioEnabled = !isAudioEnabled;
+      document.getElementById('audioText').innerText = isAudioEnabled ? 'Sound ON' : 'Muted';
+      document.getElementById('audioIcon').className = isAudioEnabled ? 'fa-solid fa-volume-high text-cyan-400' : 'fa-solid fa-volume-xmark text-slate-400';
+      if (isAudioEnabled) playBeep(880, 0.08);
+    }
+
+    function playBeep(freq, duration) {
+      if (!isAudioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // Master Clock Updater
     setInterval(() => {
       const now = new Date();
-      const timeStr = now.toLocaleTimeString();
-      document.getElementById('liveClock').innerText = timeStr;
-      document.querySelectorAll('.hudTime').forEach(el => el.innerText = timeStr);
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+      document.getElementById('masterClock').innerText = timeStr;
+      document.querySelectorAll('.hud-time').forEach(el => el.innerText = timeStr);
     }, 1000);
 
-    function setResolution(res, mbps) {
-      currentResMbps = mbps;
-      document.querySelectorAll('.res-btn').forEach(btn => {
-        btn.className = 'res-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition';
+    // ==========================================
+    // MODULE 1: PROCEDURAL SURVEILLANCE VIDEO ENGINE
+    // ==========================================
+    const cam1 = document.getElementById('canvasCam1');
+    const cam2 = document.getElementById('canvasCam2');
+    const cam3 = document.getElementById('canvasCam3');
+    const cam4 = document.getElementById('canvasCam4');
+
+    const ctx1 = cam1.getContext('2d');
+    const ctx2 = cam2.getContext('2d');
+    const ctx3 = cam3.getContext('2d');
+    const ctx4 = cam4.getContext('2d');
+
+    // Canvas resolution setup
+    function resizeCanvases() {
+      [cam1, cam2, cam3, cam4].forEach(c => {
+        c.width = 640;
+        c.height = 360;
       });
-      document.getElementById('btn-' + res).className = 'res-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition';
-      calculateStorage();
     }
+    resizeCanvases();
 
-    function setCodec(codec) {
-      currentCodec = codec;
-      document.querySelectorAll('.codec-btn').forEach(btn => {
-        btn.className = 'codec-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition';
-      });
-      document.getElementById('btn-codec-' + codec.toLowerCase()).className = 'codec-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition';
-      calculateStorage();
-    }
+    let frame = 0;
+    let isStream3Dropped = false;
+    let visionMode = 'daylight'; // 'daylight', 'ir_night', 'thermal'
 
-    function calculateStorage() {
-      const cameras = parseInt(document.getElementById('camCountInput').value);
-      const days = parseInt(document.getElementById('retentionInput').value);
+    // Procedural entities
+    let personX = 80;
+    let personDir = 1;
 
-      document.getElementById('camCountLabel').innerText = cameras + ' Cameras';
-      document.getElementById('retentionLabel').innerText = days + ' Days' + (days >= 30 ? ' (Audit Standard)' : ' (Below Audit Rec)');
+    let sewingBobbin = 0;
+    let truckLoadedBoxes = 12;
 
-      const effectiveBitrate = currentCodec === 'H265' ? currentResMbps * 0.5 : currentResMbps;
-      const totalTB = ((cameras * effectiveBitrate * 3600 * 24 * days) / (8 * 1024 * 1024)).toFixed(1);
-      const totalBandwidth = Math.round(cameras * effectiveBitrate);
+    function renderSurveillanceFrames() {
+      frame++;
+      personX += 0.8 * personDir;
+      if (personX > 540) personDir = -1;
+      if (personX < 80) personDir = 1;
 
-      // RAID 5 calculation with 8TB drives (usable 7.2TB each)
-      const dataDrives = Math.ceil(parseFloat(totalTB) / 7.2);
-      const totalDrives = Math.max(dataDrives + 1, 3);
+      sewingBobbin = (sewingBobbin + 1) % 360;
 
-      document.getElementById('outStorage').innerText = totalTB + ' TB';
-      document.getElementById('outBitrateFormula').innerText = `${cameras} cams × ${effectiveBitrate} Mbps × ${days} days continuous`;
-      document.getElementById('outBandwidth').innerText = totalBandwidth + ' Mbps';
-      document.getElementById('outDrives').innerText = `${totalDrives} Disks (8TB)`;
-      document.getElementById('outRaidBreakdown').innerText = `${totalDrives - 1} Data Disks + 1 Parity Disk (RAID 5)`;
+      // 1. RENDER CAM 01: MAIN GATE TURNSTILES
+      renderMainGateFeed(ctx1, cam1.width, cam1.height);
 
-      const auditEl = document.getElementById('outAuditStatus');
-      if (days >= 30) {
-        auditEl.innerHTML = `PASSED · ${days} DAYS`;
-        auditEl.className = 'text-xl font-bold text-emerald-400 mt-1 flex items-center gap-1.5';
+      // 2. RENDER CAM 02: SEWING PRODUCTION LINE
+      renderSewingLineFeed(ctx2, cam2.width, cam2.height);
+
+      // 3. RENDER CAM 03: SERVER ROOM RACK (or STATIC if DROPPED)
+      if (isStream3Dropped) {
+        renderStaticSignalLoss(ctx3, cam3.width, cam3.height);
       } else {
-        auditEl.innerHTML = `WARNING · ${days} DAYS (&lt;30d)`;
-        auditEl.className = 'text-xl font-bold text-rose-400 mt-1 flex items-center gap-1.5';
+        renderServerRoomFeed(ctx3, cam3.width, cam3.height);
+      }
+
+      // 4. RENDER CAM 04: SHIPPING BAY
+      renderShippingBayFeed(ctx4, cam4.width, cam4.height);
+
+      // Apply vision filter adjustments if needed
+      requestAnimationFrame(renderSurveillanceFrames);
+    }
+
+    // Helper: Camera background base
+    function applyFeedBase(ctx, w, h, bgGradient) {
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, w, h);
+
+      // Noise grain
+      const grainCount = 350;
+      ctx.fillStyle = 'rgba(255,255,255,0.025)';
+      for (let i = 0; i < grainCount; i++) {
+        const gx = Math.random() * w;
+        const gy = Math.random() * h;
+        ctx.fillRect(gx, gy, 1, 1);
+      }
+
+      // IR or Thermal filter overlay
+      if (visionMode === 'ir_night') {
+        ctx.fillStyle = 'rgba(0, 40, 20, 0.2)';
+        ctx.fillRect(0, 0, w, h);
+      } else if (visionMode === 'thermal') {
+        ctx.fillStyle = 'rgba(120, 0, 180, 0.15)';
+        ctx.fillRect(0, 0, w, h);
       }
     }
 
-    function toggleStreamDrop() {
-      isDropped = !isDropped;
-      const cam3 = document.getElementById('cam3Container');
-      const dot = document.getElementById('cam3Dot');
-      const statusText = document.getElementById('cam3StatusText');
+    // Helper: Crosshairs & optical vignette
+    function drawOpticalCrosshairs(ctx, w, h) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 1;
+      
+      // Center brackets
+      const cx = w / 2;
+      const cy = h / 2;
+      ctx.beginPath();
+      // Top-left
+      ctx.moveTo(cx - 30, cy - 15); ctx.lineTo(cx - 30, cy - 30); ctx.lineTo(cx - 15, cy - 30);
+      // Top-right
+      ctx.moveTo(cx + 15, cy - 30); ctx.lineTo(cx + 30, cy - 30); ctx.lineTo(cx + 30, cy - 15);
+      // Bottom-left
+      ctx.moveTo(cx - 30, cy + 15); ctx.lineTo(cx - 30, cy + 30); ctx.lineTo(cx - 15, cy + 30);
+      // Bottom-right
+      ctx.moveTo(cx + 15, cy + 30); ctx.lineTo(cx + 30, cy + 30); ctx.lineTo(cx + 30, cy + 15);
+      ctx.stroke();
+    }
+
+    // FEED 1: Factory Gate
+    function renderMainGateFeed(ctx, w, h) {
+      applyFeedBase(ctx, w, h, '#070c14');
+
+      // Architecture: Factory gate perimeter walls & turnstiles
+      ctx.fillStyle = '#101726';
+      ctx.fillRect(0, 260, w, 100); // Ground floor
+
+      // Turnstile barrier stanchions
+      ctx.fillStyle = '#1e293b';
+      for (let i = 120; i <= 520; i += 100) {
+        ctx.fillRect(i, 200, 14, 60);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(i - 4, 196, 22, 6);
+        ctx.fillStyle = '#1e293b';
+      }
+
+      // Worker Silhouette walking through
+      ctx.fillStyle = visionMode === 'thermal' ? '#f59e0b' : '#64748b';
+      ctx.beginPath();
+      ctx.arc(personX, 185, 12, 0, Math.PI * 2); // Head
+      ctx.fill();
+      ctx.fillRect(personX - 10, 200, 20, 48); // Torso
+      ctx.fillRect(personX - 8, 248, 6, 24); // Left leg
+      ctx.fillRect(personX + 2, 248, 6, 24); // Right leg
+
+      // AI Bounding Box & Metadata
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(personX - 22, 168, 44, 106);
+
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(personX - 22, 154, 114, 14);
+      ctx.fillStyle = '#020617';
+      ctx.font = '9px "JetBrains Mono"';
+      ctx.fillText('PERSON 98% [EMP-1042]', personX - 20, 164);
+
+      drawOpticalCrosshairs(ctx, w, h);
+    }
+
+    // FEED 2: Sewing Production Line
+    function renderSewingLineFeed(ctx, w, h) {
+      applyFeedBase(ctx, w, h, '#060a12');
+
+      // Factory Floor grid perspective
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      for (let y = 140; y < h; y += 30) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      // Sewing Workstations Rows
+      for (let i = 0; i < 4; i++) {
+        const sx = 70 + i * 140;
+        ctx.fillStyle = '#131c2e';
+        ctx.fillRect(sx, 160, 90, 70); // Table
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(sx + 35, 135, 20, 25); // Sewing machine head
+
+        // Moving thread arm
+        ctx.fillStyle = '#38bdf8';
+        const armY = 140 + Math.sin(frame * 0.2 + i) * 6;
+        ctx.fillRect(sx + 42, armY, 6, 12);
+      }
+
+      // AI Quality / PPE Inspection Box
+      ctx.strokeStyle = '#00d2ff';
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(60, 125, 250, 115);
+      ctx.fillStyle = 'rgba(0, 210, 255, 0.85)';
+      ctx.fillRect(60, 112, 148, 13);
+      ctx.fillStyle = '#020617';
+      ctx.font = '9px "JetBrains Mono"';
+      ctx.fillText('SEWING LINE 04 · SAFETY: PASS', 63, 122);
+
+      drawOpticalCrosshairs(ctx, w, h);
+    }
+
+    // FEED 3: Server Room NOC Rack
+    function renderServerRoomFeed(ctx, w, h) {
+      applyFeedBase(ctx, w, h, '#04070d');
+
+      // Core 42U Server Racks
+      const rackX = 140;
+      ctx.fillStyle = '#0c121e';
+      ctx.fillRect(rackX, 50, 360, 270);
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.strokeRect(rackX, 50, 360, 270);
+
+      // Server Units (1U / 2U slots)
+      for (let u = 0; u < 12; u++) {
+        const uy = 65 + u * 20;
+        ctx.fillStyle = u % 2 === 0 ? '#111827' : '#162032';
+        ctx.fillRect(rackX + 15, uy, 330, 16);
+
+        // Blinking LED Activity Lights
+        for (let led = 0; led < 8; led++) {
+          const lx = rackX + 35 + led * 12;
+          const isBlink = Math.sin(frame * 0.15 + led * 2 + u) > 0.1;
+          ctx.fillStyle = isBlink ? '#10b981' : (led === 7 ? '#f59e0b' : '#047857');
+          ctx.beginPath();
+          ctx.arc(lx, uy + 8, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Security Sensor Overlay
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.strokeRect(120, 35, 400, 295);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
+      ctx.fillRect(120, 22, 160, 13);
+      ctx.fillStyle = '#020617';
+      ctx.font = '9px "JetBrains Mono"';
+      ctx.fillText('SERVER RACK 01 · 21.4°C · NO MOTION', 124, 32);
+
+      drawOpticalCrosshairs(ctx, w, h);
+    }
+
+    // Signal Loss Static for CAM 03
+    function renderStaticSignalLoss(ctx, w, h) {
+      // Noise static
+      const imgData = ctx.createImageData(w, h);
+      const buffer = new Uint32Array(imgData.data.buffer);
+      for (let i = 0; i < buffer.length; i++) {
+        const gray = Math.floor(Math.random() * 255);
+        // Red tinted static
+        buffer[i] = (255 << 24) | (Math.floor(gray * 0.3) << 16) | (Math.floor(gray * 0.3) << 8) | gray;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      // Flashing Alert Banner
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.88)';
+      ctx.fillRect(40, 140, w - 80, 80);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(40, 140, w - 80, 80);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px "JetBrains Mono"';
+      ctx.textAlign = 'center';
+      ctx.fillText('CRITICAL: RTSP STREAM SIGNAL LOST', w / 2, 175);
+      ctx.font = '11px "JetBrains Mono"';
+      ctx.fillText('PORT 554 TIMEOUT · DISPATCHING TELEGRAM ALERT', w / 2, 198);
+      ctx.textAlign = 'left';
+    }
+
+    // FEED 4: Shipping Dock
+    function renderShippingBayFeed(ctx, w, h) {
+      applyFeedBase(ctx, w, h, '#060910');
+
+      // Cargo Bay Outline
+      ctx.fillStyle = '#0e1524';
+      ctx.fillRect(80, 70, 480, 220); // Rollup bay door
+
+      // Freight Truck Silhouette
+      ctx.fillStyle = '#1a2436';
+      ctx.fillRect(160, 130, 320, 140);
+      ctx.fillStyle = '#26334a';
+      ctx.fillRect(420, 150, 70, 120); // Truck cab
+
+      // Carton Pallet Stacks
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(100, 230, 45, 40);
+      ctx.fillRect(115, 205, 30, 25);
+
+      // AI Bounding Box on Pallet
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(95, 195, 60, 80);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(95, 182, 110, 13);
+      ctx.fillStyle = '#020617';
+      ctx.font = '9px "JetBrains Mono"';
+      ctx.fillText('PALLET CARTON #4092', 98, 192);
+
+      drawOpticalCrosshairs(ctx, w, h);
+    }
+
+    // Kick off animation loop
+    renderSurveillanceFrames();
+
+    // ==========================================
+    // SPARKLINE BITRATE INGRESS GRAPH
+    // ==========================================
+    const sparkCanvas = document.getElementById('bitrateSparkline');
+    const sparkCtx = sparkCanvas.getContext('2d');
+    let sparkHistory = Array(60).fill(10.0);
+
+    function updateSparkline() {
+      const parent = sparkCanvas.parentElement;
+      sparkCanvas.width = parent.clientWidth;
+      sparkCanvas.height = parent.clientHeight;
+
+      const base = isStream3Dropped ? 6.0 : 10.0;
+      const noise = (Math.random() - 0.5) * 0.8;
+      const current = parseFloat((base + noise).toFixed(2));
+      sparkHistory.push(current);
+      sparkHistory.shift();
+
+      document.getElementById('liveBitrateVal').innerText = current.toFixed(2) + ' Mbps';
+
+      const w = sparkCanvas.width;
+      const h = sparkCanvas.height;
+      sparkCtx.clearRect(0, 0, w, h);
+
+      const step = w / (sparkHistory.length - 1);
+      const max = 15;
+      const min = 4;
+
+      // Draw path
+      sparkCtx.beginPath();
+      for (let i = 0; i < sparkHistory.length; i++) {
+        const val = sparkHistory[i];
+        const x = i * step;
+        const y = h - ((val - min) / (max - min)) * (h - 10) - 5;
+        if (i === 0) sparkCtx.moveTo(x, y);
+        else sparkCtx.lineTo(x, y);
+      }
+
+      sparkCtx.strokeStyle = isStream3Dropped ? '#f43f5e' : '#00d2ff';
+      sparkCtx.lineWidth = 2;
+      sparkCtx.stroke();
+
+      // Area fill
+      sparkCtx.lineTo(w, h);
+      sparkCtx.lineTo(0, h);
+      sparkCtx.closePath();
+      sparkCtx.fillStyle = isStream3Dropped ? 'rgba(244, 63, 94, 0.12)' : 'rgba(0, 210, 255, 0.12)';
+      sparkCtx.fill();
+    }
+    setInterval(updateSparkline, 1000);
+
+    // ==========================================
+    // INTERACTIVE CONTROLS: LAYOUT, VISION, LOSS
+    // ==========================================
+    function setLayout(mode) {
+      const container = document.getElementById('cctvGridContainer');
+      const btn2x2 = document.getElementById('btnLayout2x2');
+      const btnDir = document.getElementById('btnLayoutDirector');
+
+      if (mode === 'director') {
+        container.style.gridTemplateColumns = '2fr 1fr';
+        btnDir.style.background = 'var(--surface-3)';
+        btnDir.style.borderColor = 'var(--accent-cyan)';
+        btn2x2.style.background = 'transparent';
+        btn2x2.style.borderColor = 'transparent';
+      } else {
+        container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        btn2x2.style.background = 'var(--surface-3)';
+        btn2x2.style.borderColor = 'var(--accent-cyan)';
+        btnDir.style.background = 'transparent';
+        btnDir.style.borderColor = 'transparent';
+      }
+      playBeep(640, 0.05);
+    }
+
+    function toggleVisionMode() {
+      if (visionMode === 'daylight') {
+        visionMode = 'ir_night';
+        document.getElementById('visionModeLabel').innerText = 'Mode: IR Night';
+      } else if (visionMode === 'ir_night') {
+        visionMode = 'thermal';
+        document.getElementById('visionModeLabel').innerText = 'Mode: Thermal IR';
+      } else {
+        visionMode = 'daylight';
+        document.getElementById('visionModeLabel').innerText = 'Mode: Daylight';
+      }
+      playBeep(720, 0.05);
+    }
+
+    function toggleStreamLoss() {
+      isStream3Dropped = !isStream3Dropped;
+      const wrap = document.getElementById('cam3Wrapper');
+      const led = document.getElementById('cam3Led');
+      const rec = document.getElementById('cam3RecBadge');
       const specs = document.getElementById('cam3Specs');
-      const center = document.getElementById('cam3Center');
-      const scan = document.getElementById('cam3Scan');
+      const title = document.getElementById('cam3Title');
+      const sub = document.getElementById('cam3Sub');
       const btnText = document.getElementById('dropBtnText');
-      const log = document.getElementById('incidentLog');
+      const log = document.getElementById('incidentLogConsole');
+      const daemonStatus = document.getElementById('daemonStatus');
 
-      const time = new Date().toLocaleTimeString();
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
 
-      if (isDropped) {
-        cam3.className = 'relative bg-rose-950/40 border-2 border-rose-500 rounded-xl overflow-hidden aspect-video shadow-lg group transition-all';
-        dot.className = 'size-2 rounded-full bg-rose-500 animate-ping';
-        statusText.innerText = 'STREAM LOST';
-        statusText.className = 'font-bold text-rose-400';
-        specs.innerText = 'RTSP TIMEOUT (PORT 554 NO REPLY)';
-        specs.className = 'bg-rose-900/80 px-2 py-1 rounded border border-rose-500/40 text-[11px] text-rose-200';
-        center.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-4xl mb-2 text-rose-400 animate-bounce"></i><span class="font-mono text-xs font-bold tracking-widest text-rose-300">VIDEO SIGNAL DROPPED · DISPATCH TECHNICIAN</span>';
-        scan.style.display = 'none';
+      if (isStream3Dropped) {
+        wrap.style.borderColor = '#f43f5e';
+        led.className = 'status-led led-rose';
+        rec.innerText = 'LOSS';
+        rec.style.color = '#f43f5e';
+        specs.innerText = 'RTSP 554 TIMEOUT';
+        specs.style.color = '#f43f5e';
+        title.innerText = 'CAM-03 · SIGNAL DROP DETECTED';
+        sub.innerText = 'INCIDENT DISPATCHED TO IT ON-CALL';
         btnText.innerText = 'Restore Stream (CAM-03)';
+        daemonStatus.innerText = 'INCIDENT DISPATCHED (ALERT)';
+        daemonStatus.style.color = '#f43f5e';
 
-        log.innerHTML = `<div class="text-rose-400 font-bold">[${time}] CRITICAL: RTSP stream drop detected on CAM-03 (192.168.20.103) in Server Room NOC! Telegram alert dispatched to IT Ops.</div>` + log.innerHTML;
+        log.innerHTML = `<div style="color: #f43f5e; font-weight: 700;">[${time}] CRITICAL: CAM-03 (192.168.20.103) RTSP socket timeout! Telegram Bot webhook alert sent to IT Ops.</div>` + log.innerHTML;
+        playBeep(440, 0.25);
       } else {
-        cam3.className = 'relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group transition-all';
-        dot.className = 'size-2 rounded-full bg-emerald-400 animate-ping';
-        statusText.innerText = 'REC';
-        statusText.className = 'font-bold text-emerald-400';
-        specs.innerText = '4MP QHD · 30 FPS · 4096 Kbps';
-        specs.className = 'bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300';
-        center.innerHTML = '<i class="fa-solid fa-server text-4xl mb-2 text-slate-500"></i><span class="font-mono text-xs tracking-widest text-slate-400">CORE SERVER RACK & UPS MONITORED</span>';
-        scan.style.display = 'block';
-        btnText.innerText = 'Simulate Stream Drop (CAM-03)';
+        wrap.style.borderColor = 'var(--hairline)';
+        led.className = 'status-led led-emerald';
+        rec.innerText = 'REC';
+        rec.style.color = 'var(--accent-emerald)';
+        specs.innerText = '4MP QHD · 30.0 FPS · 4096 Kbps';
+        specs.style.color = 'var(--accent-cyan)';
+        title.innerText = 'CAM-03 · SERVER ROOM & IT NOC RACK';
+        sub.innerText = 'IP: 192.168.20.103 · HIGH SECURITY ZONE · 21.4°C';
+        btnText.innerText = 'Simulate RTSP Loss (CAM-03)';
+        daemonStatus.innerText = 'DAEMON: ACTIVE (PORT 554)';
+        daemonStatus.style.color = 'var(--accent-emerald)';
 
-        log.innerHTML = `<div class="text-emerald-400 font-bold">[${time}] RECOVERY: RTSP stream re-established on CAM-03 (192.168.20.103). Video recording resumed.</div>` + log.innerHTML;
+        log.innerHTML = `<div style="color: #10b981; font-weight: 700;">[${time}] RECOVERY: CAM-03 stream re-established. Video recording resumed without frame loss.</div>` + log.innerHTML;
+        playBeep(880, 0.08);
       }
     }
 
-    function resetStreams() {
-      if (isDropped) toggleStreamDrop();
+    function resetCameras() {
+      if (isStream3Dropped) toggleStreamLoss();
+      visionMode = 'daylight';
+      document.getElementById('visionModeLabel').innerText = 'Mode: Daylight';
+      setLayout('2x2');
     }
 
-    // Initial run
-    calculateStorage();
+    function captureSnapshot(camNum, camName) {
+      const c = [null, cam1, cam2, cam3, cam4][camNum];
+      if (!c) return;
+
+      const link = document.createElement('a');
+      link.download = `${camName}_${Date.now()}.png`;
+      link.href = c.toDataURL('image/png');
+      link.click();
+
+      playBeep(1200, 0.06);
+      const log = document.getElementById('incidentLogConsole');
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      log.innerHTML = `<div style="color: #00d2ff;">[${time}] SNAPSHOT: Captured frame from CAM-0${camNum} exported to PNG.</div>` + log.innerHTML;
+    }
+
+    // ==========================================
+    // MODULE 2: NVR STORAGE & RAID 5 ENGINE
+    // ==========================================
+    let currentResMbps = 2.0;
+    let currentCodec = 'H265';
+
+    function selectResolution(res, mbps) {
+      currentResMbps = mbps;
+      ['1080p', '4MP', '4K'].forEach(r => {
+        const btn = document.getElementById('resBtn' + r);
+        if (r === res) {
+          btn.style.borderColor = 'var(--accent-cyan)';
+          btn.style.background = 'var(--surface-3)';
+          btn.style.color = 'var(--accent-cyan)';
+          btn.style.fontWeight = '700';
+        } else {
+          btn.style.borderColor = 'var(--hairline)';
+          btn.style.background = 'var(--surface-2)';
+          btn.style.color = 'var(--ink)';
+          btn.style.fontWeight = '600';
+        }
+      });
+      runStorageCalculator();
+    }
+
+    function selectCodec(codec) {
+      currentCodec = codec;
+      const h265 = document.getElementById('codecBtnH265');
+      const h264 = document.getElementById('codecBtnH264');
+      if (codec === 'H265') {
+        h265.style.borderColor = 'var(--accent-cyan)';
+        h265.style.background = 'var(--surface-3)';
+        h265.style.color = 'var(--accent-cyan)';
+        h265.style.fontWeight = '700';
+        h264.style.borderColor = 'var(--hairline)';
+        h264.style.background = 'var(--surface-2)';
+        h264.style.color = 'var(--ink)';
+        h264.style.fontWeight = '600';
+      } else {
+        h264.style.borderColor = 'var(--accent-cyan)';
+        h264.style.background = 'var(--surface-3)';
+        h264.style.color = 'var(--accent-cyan)';
+        h264.style.fontWeight = '700';
+        h265.style.borderColor = 'var(--hairline)';
+        h265.style.background = 'var(--surface-2)';
+        h265.style.color = 'var(--ink)';
+        h265.style.fontWeight = '600';
+      }
+      runStorageCalculator();
+    }
+
+    function runStorageCalculator() {
+      const cams = parseInt(document.getElementById('inputCamCount').value);
+      const days = parseInt(document.getElementById('inputRetention').value);
+
+      document.getElementById('labelCamCount').innerText = cams + ' Cameras';
+      document.getElementById('labelRetention').innerText = days + ' Days' + (days >= 30 ? ' (Audit Standard)' : ' (< 30d Audit Alert)');
+
+      // Effective bitrate calculation
+      const effectiveMbps = currentCodec === 'H265' ? currentResMbps * 0.5 : currentResMbps;
+
+      // Net Storage TB = (cams * Mbps * 3600 * 24 * days) / (8 * 1024 * 1024)
+      const totalTB = ((cams * effectiveMbps * 3600 * 24 * days) / (8 * 1024 * 1024)).toFixed(1);
+      const totalBandwidth = Math.round(cams * effectiveMbps);
+
+      // RAID 5 Calculation using enterprise 8TB drives (usable 7.27TB after formatting)
+      const dataDrivesNeeded = Math.ceil(parseFloat(totalTB) / 7.27);
+      // RAID 5 requires minimum 3 drives (N data + 1 parity)
+      const totalDrives = Math.max(dataDrivesNeeded + 1, 3);
+      const rawCapacityTB = totalDrives * 8;
+
+      document.getElementById('statNetStorage').innerText = totalTB + ' TB';
+      document.getElementById('statFormula').innerText = `${cams} cams × ${effectiveMbps} Mbps × ${days}d continuous`;
+      document.getElementById('statBandwidth').innerText = totalBandwidth + ' Mbps';
+      document.getElementById('statDriveCount').innerText = `${totalDrives} Disks (${rawCapacityTB} TB Raw)`;
+      document.getElementById('statParity').innerText = `${totalDrives - 1} Data Disks + 1 Parity Disk (RAID 5)`;
+
+      const auditEl = document.getElementById('statAuditVerdict');
+      const auditDetail = document.getElementById('statAuditDetail');
+
+      if (days >= 30) {
+        auditEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> PASSED (${days} DAYS)`;
+        auditEl.style.color = 'var(--accent-emerald)';
+        auditDetail.innerText = 'Meets Accord/RSC mandatory 30-day retention';
+      } else {
+        auditEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> FAILED (${days} DAYS)`;
+        auditEl.style.color = 'var(--accent-rose)';
+        auditDetail.innerText = 'VIOLATION: Under 30-day RMG audit requirement';
+      }
+
+      // Update 16-Bay Chassis Visualization
+      renderChassisBays(totalDrives);
+    }
+
+    function renderChassisBays(activeDriveCount) {
+      const grid = document.getElementById('chassisDiskGrid');
+      grid.innerHTML = '';
+
+      for (let bay = 1; bay <= 16; bay++) {
+        const div = document.createElement('div');
+        
+        if (bay <= activeDriveCount) {
+          const isParity = (bay === activeDriveCount);
+          div.className = isParity ? 'disk-bay active-parity' : 'disk-bay active-data';
+          div.innerHTML = `
+            <span>BAY ${bay < 10 ? '0' + bay : bay}</span>
+            <span class="status-led ${isParity ? 'led-cyan' : 'led-emerald'}"></span>
+          `;
+          div.title = isParity ? `Bay ${bay}: RAID 5 Parity Drive (8TB)` : `Bay ${bay}: Active Storage Drive (8TB)`;
+        } else {
+          div.className = 'disk-bay empty-slot';
+          div.innerHTML = `
+            <span>BAY ${bay < 10 ? '0' + bay : bay}</span>
+            <span class="status-led led-off"></span>
+          `;
+          div.title = `Bay ${bay}: Empty / Unallocated Hot-Spare Slot`;
+        }
+        grid.appendChild(div);
+      }
+    }
+
+    // ==========================================
+    // MODULE 3: EXPORT CERTIFICATION & CLI
+    // ==========================================
+    function exportAuditCertificate() {
+      const cams = document.getElementById('inputCamCount').value;
+      const days = document.getElementById('inputRetention').value;
+      const storage = document.getElementById('statNetStorage').innerText;
+      const drives = document.getElementById('statDriveCount').innerText;
+
+      const certData = {
+        title: "Enterprise Surveillance System Compliance Specification",
+        facility: "Industrial Manufacturing Campus",
+        auditorStandard: "WRAP & Accord/RSC 30-Day Mandatory Retention",
+        parameters: {
+          cameraCount: cams,
+          retentionPeriodDays: days,
+          videoCodec: currentCodec,
+          storageRequiredNet: storage,
+          raidConfiguration: "Hardware RAID 5 with Dedicated Parity",
+          driveSpecification: drives,
+          firewallSecurity: "VLAN 20 Isolated with WAN Blocking Rules"
+        },
+        auditComplianceVerdict: parseInt(days) >= 30 ? "CERTIFIED_AUDIT_COMPLIANT" : "AUDIT_NON_COMPLIANT",
+        generatedAt: new Date().toISOString(),
+        maintainer: "MD. Mahamudul Hasan"
+      };
+
+      const blob = new Blob([JSON.stringify(certData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CCTV_Audit_Compliance_Spec_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      playBeep(960, 0.08);
+    }
+
+    function copyRtspCommand() {
+      const cmd = "python cctv_core/stream_monitor_daemon.py --subnet 192.168.20.0/24 --retention 30 --telegram-alerts";
+      navigator.clipboard.writeText(cmd).then(() => {
+        document.getElementById('copyCliText').innerText = 'Copied to Clipboard!';
+        setTimeout(() => {
+          document.getElementById('copyCliText').innerText = 'Copy ONVIF RTSP Python Daemon Command';
+        }, 2500);
+        playBeep(1100, 0.05);
+      });
+    }
+
+    // Initialize calculator on page load
+    runStorageCalculator();
   </script>
 </body>
 </html>
