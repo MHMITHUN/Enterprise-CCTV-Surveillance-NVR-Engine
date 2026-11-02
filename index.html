@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise IP CCTV Surveillance & NVR Storage Engine — NOC Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(1000%); }
+    }
+    .scanline {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(to right, transparent, rgba(6, 182, 212, 0.7), transparent);
+      animation: scanline 4s linear infinite;
+    }
+    .grid-cctv {
+      background-size: 20px 20px;
+      background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <span class="flex size-3 rounded-full bg-cyan-400 animate-pulse"></span>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            <i class="fa-solid fa-video text-cyan-400"></i>
+            Enterprise CCTV Surveillance & NVR Engine
+          </h1>
+          <p class="text-xs text-slate-400 font-mono">NOC Stream Monitor · H.265+ Storage Calculator · RAID 5 Topologies</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 font-mono text-xs">
+        <div class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded">
+          <span class="text-slate-400">RETENTION AUDIT:</span>
+          <span class="text-emerald-400 font-bold ml-1">RSC/WRAP &gt;= 30 DAYS</span>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded">
+          <span class="text-slate-400">NOC TIME:</span>
+          <span id="liveClock" class="text-cyan-400 font-bold ml-1">00:00:00</span>
+        </div>
+        <a href="https://github.com/MHMITHUN/Enterprise-CCTV-Surveillance-NVR-Engine" target="_blank"
+           class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1.5 rounded transition flex items-center gap-1.5">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub Repo</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <!-- SECTION 1: 4-CHANNEL CCTV LIVE HUD STREAM SIMULATOR -->
+    <section>
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 font-bold tracking-wider uppercase">MODULE 01 · STREAM MONITORING</span>
+          <h2 class="text-xl font-bold text-white">Live RTSP Channel Grid & Video-Loss Heartbeat</h2>
+        </div>
+        <div class="flex gap-2">
+          <button id="toggleDropBtn" onclick="toggleStreamDrop()"
+                  class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono font-bold px-3 py-2 rounded transition flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span id="dropBtnText">Simulate Stream Drop (CAM-03)</span>
+          </button>
+          <button onclick="resetStreams()"
+                  class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono px-3 py-2 rounded transition">
+            Reset Grid
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Channel Video Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- CAM 01 -->
+        <div class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group">
+          <div class="scanline"></div>
+          <div class="absolute inset-0 grid-cctv opacity-50"></div>
+          <!-- Channel HUD -->
+          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
+            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
+              <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="font-bold text-emerald-400">REC</span>
+              <span class="text-slate-300">CAM-01 · FACTORY MAIN GATE TURNSTILES</span>
+            </div>
+            <div class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
+              1080p FHD · 30 FPS · 2048 Kbps
+            </div>
+          </div>
+          <!-- Center Visual Graphic -->
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
+            <i class="fa-solid fa-person-walking text-4xl mb-2 text-slate-500"></i>
+            <span class="font-mono text-xs tracking-widest text-slate-400">GATE 01 PERIMETER ACCESS FEED</span>
+          </div>
+          <!-- Bottom Info -->
+          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
+            <span>CODEC: H.265+ (ONVIF PROFILE S)</span>
+            <span class="hudTime text-emerald-400">--:--:--</span>
+          </div>
+        </div>
+
+        <!-- CAM 02 -->
+        <div class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group">
+          <div class="scanline"></div>
+          <div class="absolute inset-0 grid-cctv opacity-50"></div>
+          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
+            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
+              <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="font-bold text-emerald-400">REC</span>
+              <span class="text-slate-300">CAM-02 · SEWING PRODUCTION LINE 04</span>
+            </div>
+            <div class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
+              1080p FHD · 25 FPS · 1850 Kbps
+            </div>
+          </div>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
+            <i class="fa-solid fa-industry text-4xl mb-2 text-slate-500"></i>
+            <span class="font-mono text-xs tracking-widest text-slate-400">PRODUCTION WORKER SAFETY FEED</span>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
+            <span>CODEC: H.265+ (DYNAMIC MOTION)</span>
+            <span class="hudTime text-emerald-400">--:--:--</span>
+          </div>
+        </div>
+
+        <!-- CAM 03 (Alert Target) -->
+        <div id="cam3Container" class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group transition-all">
+          <div id="cam3Scan" class="scanline"></div>
+          <div class="absolute inset-0 grid-cctv opacity-50"></div>
+          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
+            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
+              <span id="cam3Dot" class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span id="cam3StatusText" class="font-bold text-emerald-400">REC</span>
+              <span class="text-slate-300">CAM-03 · SERVER ROOM & IT RACK NOC</span>
+            </div>
+            <div id="cam3Specs" class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
+              4MP QHD · 30 FPS · 4096 Kbps
+            </div>
+          </div>
+          <div id="cam3Center" class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
+            <i class="fa-solid fa-server text-4xl mb-2 text-slate-500"></i>
+            <span class="font-mono text-xs tracking-widest text-slate-400">CORE SERVER RACK & UPS MONITORED</span>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
+            <span>CODEC: H.265+ (RESTRICTED ZONE)</span>
+            <span class="hudTime text-emerald-400">--:--:--</span>
+          </div>
+        </div>
+
+        <!-- CAM 04 -->
+        <div class="relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group">
+          <div class="scanline"></div>
+          <div class="absolute inset-0 grid-cctv opacity-50"></div>
+          <div class="absolute top-3 left-3 right-3 flex justify-between items-center text-xs font-mono z-10">
+            <div class="bg-black/70 backdrop-blur px-2 py-1 rounded border border-white/10 flex items-center gap-2">
+              <span class="size-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="font-bold text-emerald-400">REC</span>
+              <span class="text-slate-300">CAM-04 · FINISHED GOODS SHIPPING DOCK</span>
+            </div>
+            <div class="bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300">
+              1080p FHD · 25 FPS · 2048 Kbps
+            </div>
+          </div>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-600">
+            <i class="fa-solid fa-truck text-4xl mb-2 text-slate-500"></i>
+            <span class="font-mono text-xs tracking-widest text-slate-400">CARGO BAY & CARTON DISPATCH FEED</span>
+          </div>
+          <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-[10px] font-mono text-slate-400 bg-black/60 px-2 py-1 rounded z-10">
+            <span>CODEC: H.265+ (WRAP AUDITED DOCK)</span>
+            <span class="hudTime text-emerald-400">--:--:--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Incident Log Console -->
+      <div class="mt-4 bg-slate-900/90 border border-slate-800 rounded-xl p-4 font-mono text-xs">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
+          <span class="font-bold text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-terminal text-cyan-400"></i>
+            NOC Daemon Heartbeat Event Log
+          </span>
+          <span class="text-[10px] text-emerald-400">SYSTEM HEALTH: 100% (ALL STREAMS LIVE)</span>
+        </div>
+        <div id="incidentLog" class="space-y-1 text-slate-400 max-h-24 overflow-y-auto">
+          <div>[INFO] Heartbeat polling active on port 554 across 4 RTSP channels. Ping latency avg: 1.4ms.</div>
+          <div>[INFO] H.265+ stream integrity verified on Hikvision NVR 7616NXI-I2.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: INTERACTIVE NVR STORAGE & RAID 5 CALCULATOR -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+      <div class="border-b border-slate-800 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 font-bold tracking-wider uppercase">MODULE 02 · ENGINEERING CALCULATOR</span>
+          <h2 class="text-xl font-bold text-white">NVR Storage &amp; Enterprise RAID 5 Drive Dimensioning</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Calculates byte-exact storage and network ingestion based on Accord/RSC 30-day compliance mandates.</p>
+        </div>
+        <div class="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-cyan-300 font-mono text-xs">
+          <i class="fa-solid fa-calculator"></i>
+          <span>Dynamic Storage Engine</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Controls Column (Left) -->
+        <div class="lg:col-span-5 space-y-5">
+          <!-- Camera Count Slider -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5 font-mono text-xs">
+              <label class="text-slate-300 font-bold">Total IP Cameras:</label>
+              <span id="camCountLabel" class="text-cyan-400 font-bold text-sm bg-slate-800 px-2 py-0.5 rounded border border-slate-700">32 Cameras</span>
+            </div>
+            <input type="range" id="camCountInput" min="4" max="128" step="4" value="32" oninput="calculateStorage()"
+                   class="w-full accent-cyan-400 cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+              <span>4 Ch</span>
+              <span>32 Ch (Standard)</span>
+              <span>64 Ch (Large)</span>
+              <span>128 Ch (Enterprise)</span>
+            </div>
+          </div>
+
+          <!-- Retention Days Slider -->
+          <div>
+            <div class="flex justify-between items-center mb-1.5 font-mono text-xs">
+              <label class="text-slate-300 font-bold">Video Retention Days:</label>
+              <span id="retentionLabel" class="text-emerald-400 font-bold text-sm bg-slate-800 px-2 py-0.5 rounded border border-slate-700">30 Days (Audit Standard)</span>
+            </div>
+            <input type="range" id="retentionInput" min="7" max="90" step="1" value="30" oninput="calculateStorage()"
+                   class="w-full accent-emerald-400 cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+              <span>7 Days</span>
+              <span>30 Days (Audit Min)</span>
+              <span>60 Days</span>
+              <span>90 Days</span>
+            </div>
+          </div>
+
+          <!-- Resolution Selector -->
+          <div>
+            <label class="block text-xs font-mono text-slate-300 font-bold mb-1.5">Stream Resolution:</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setResolution('1080p', 2.0)" id="btn-1080p"
+                      class="res-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition">
+                1080p FHD
+              </button>
+              <button onclick="setResolution('4MP', 4.0)" id="btn-4MP"
+                      class="res-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition">
+                4MP QHD
+              </button>
+              <button onclick="setResolution('4K', 8.0)" id="btn-4K"
+                      class="res-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition">
+                4K UHD
+              </button>
+            </div>
+          </div>
+
+          <!-- Codec Mode Toggle -->
+          <div>
+            <label class="block text-xs font-mono text-slate-300 font-bold mb-1.5">Compression Codec:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="setCodec('H265')" id="btn-codec-h265"
+                      class="codec-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition">
+                H.265+ (Smart 50% Saver)
+              </button>
+              <button onclick="setCodec('H264')" id="btn-codec-h264"
+                      class="codec-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition">
+                Legacy H.264
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Cards (Right) -->
+        <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono">
+            <!-- Card 1: Net Storage -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+              <span class="text-[10px] text-slate-400 uppercase">NET STORAGE REQUIRED</span>
+              <div class="text-3xl font-extrabold text-cyan-400 mt-1" id="outStorage">19.8 TB</div>
+              <p class="text-xs text-slate-400 mt-1" id="outBitrateFormula">32 cams × 1.0 Mbps × 30 days continuous</p>
+            </div>
+
+            <!-- Card 2: Network Bandwidth -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+              <span class="text-[10px] text-slate-400 uppercase">UPLINK INGRESS BANDWIDTH</span>
+              <div class="text-3xl font-extrabold text-amber-400 mt-1" id="outBandwidth">32 Mbps</div>
+              <p class="text-xs text-slate-400 mt-1">Recommended PoE Switch: Gigabit 1000 Mbps Uplink</p>
+            </div>
+
+            <!-- Card 3: RAID 5 Drives -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+              <span class="text-[10px] text-slate-400 uppercase">RAID 5 SURVEILLANCE DRIVES</span>
+              <div class="text-3xl font-extrabold text-emerald-400 mt-1" id="outDrives">4 Drives (8TB)</div>
+              <p class="text-xs text-slate-400 mt-1" id="outRaidBreakdown">3 Data Disks + 1 Parity Fault-Tolerant</p>
+            </div>
+
+            <!-- Card 4: Audit Status -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+              <span class="text-[10px] text-slate-400 uppercase">WRAP &amp; RSC COMPLIANCE</span>
+              <div class="text-xl font-bold text-emerald-400 mt-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="outAuditStatus">PASSED · 30 DAYS</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Meets Accord/RSC mandatory storage requirements.</p>
+            </div>
+          </div>
+
+          <!-- Architecture Visual Note -->
+          <div class="bg-slate-950 border border-cyan-500/20 rounded-xl p-4 text-xs font-mono text-slate-300">
+            <div class="flex items-center gap-2 text-cyan-400 font-bold mb-1">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>Hardware Storage Architecture Specification:</span>
+            </div>
+            <p class="text-slate-400 leading-relaxed">
+              Recommended: Hikvision DS-9664NXI-I8 / Dahua NVR5864 with Seagate SkyHawk AI 8TB 7200 RPM enterprise surveillance HDDs configured in hardware RAID 5. Provides 1-disk fault tolerance without recording interruption.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500 font-mono">
+    Developed by <span class="text-slate-300 font-bold">MD. Mahamudul Hasan</span> · IT Officer &amp; Surveillance Systems Specialist · MIT License
+  </footer>
+
+  <script>
+    // State
+    let currentResMbps = 2.0;
+    let currentCodec = 'H265';
+    let isDropped = false;
+
+    // Clock
+    setInterval(() => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+      document.getElementById('liveClock').innerText = timeStr;
+      document.querySelectorAll('.hudTime').forEach(el => el.innerText = timeStr);
+    }, 1000);
+
+    function setResolution(res, mbps) {
+      currentResMbps = mbps;
+      document.querySelectorAll('.res-btn').forEach(btn => {
+        btn.className = 'res-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition';
+      });
+      document.getElementById('btn-' + res).className = 'res-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition';
+      calculateStorage();
+    }
+
+    function setCodec(codec) {
+      currentCodec = codec;
+      document.querySelectorAll('.codec-btn').forEach(btn => {
+        btn.className = 'codec-btn bg-slate-800 border border-slate-700 text-slate-400 py-2 rounded text-xs font-mono transition';
+      });
+      document.getElementById('btn-codec-' + codec.toLowerCase()).className = 'codec-btn bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 py-2 rounded text-xs font-mono font-bold transition';
+      calculateStorage();
+    }
+
+    function calculateStorage() {
+      const cameras = parseInt(document.getElementById('camCountInput').value);
+      const days = parseInt(document.getElementById('retentionInput').value);
+
+      document.getElementById('camCountLabel').innerText = cameras + ' Cameras';
+      document.getElementById('retentionLabel').innerText = days + ' Days' + (days >= 30 ? ' (Audit Standard)' : ' (Below Audit Rec)');
+
+      const effectiveBitrate = currentCodec === 'H265' ? currentResMbps * 0.5 : currentResMbps;
+      const totalTB = ((cameras * effectiveBitrate * 3600 * 24 * days) / (8 * 1024 * 1024)).toFixed(1);
+      const totalBandwidth = Math.round(cameras * effectiveBitrate);
+
+      // RAID 5 calculation with 8TB drives (usable 7.2TB each)
+      const dataDrives = Math.ceil(parseFloat(totalTB) / 7.2);
+      const totalDrives = Math.max(dataDrives + 1, 3);
+
+      document.getElementById('outStorage').innerText = totalTB + ' TB';
+      document.getElementById('outBitrateFormula').innerText = `${cameras} cams × ${effectiveBitrate} Mbps × ${days} days continuous`;
+      document.getElementById('outBandwidth').innerText = totalBandwidth + ' Mbps';
+      document.getElementById('outDrives').innerText = `${totalDrives} Disks (8TB)`;
+      document.getElementById('outRaidBreakdown').innerText = `${totalDrives - 1} Data Disks + 1 Parity Disk (RAID 5)`;
+
+      const auditEl = document.getElementById('outAuditStatus');
+      if (days >= 30) {
+        auditEl.innerHTML = `PASSED · ${days} DAYS`;
+        auditEl.className = 'text-xl font-bold text-emerald-400 mt-1 flex items-center gap-1.5';
+      } else {
+        auditEl.innerHTML = `WARNING · ${days} DAYS (&lt;30d)`;
+        auditEl.className = 'text-xl font-bold text-rose-400 mt-1 flex items-center gap-1.5';
+      }
+    }
+
+    function toggleStreamDrop() {
+      isDropped = !isDropped;
+      const cam3 = document.getElementById('cam3Container');
+      const dot = document.getElementById('cam3Dot');
+      const statusText = document.getElementById('cam3StatusText');
+      const specs = document.getElementById('cam3Specs');
+      const center = document.getElementById('cam3Center');
+      const scan = document.getElementById('cam3Scan');
+      const btnText = document.getElementById('dropBtnText');
+      const log = document.getElementById('incidentLog');
+
+      const time = new Date().toLocaleTimeString();
+
+      if (isDropped) {
+        cam3.className = 'relative bg-rose-950/40 border-2 border-rose-500 rounded-xl overflow-hidden aspect-video shadow-lg group transition-all';
+        dot.className = 'size-2 rounded-full bg-rose-500 animate-ping';
+        statusText.innerText = 'STREAM LOST';
+        statusText.className = 'font-bold text-rose-400';
+        specs.innerText = 'RTSP TIMEOUT (PORT 554 NO REPLY)';
+        specs.className = 'bg-rose-900/80 px-2 py-1 rounded border border-rose-500/40 text-[11px] text-rose-200';
+        center.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-4xl mb-2 text-rose-400 animate-bounce"></i><span class="font-mono text-xs font-bold tracking-widest text-rose-300">VIDEO SIGNAL DROPPED · DISPATCH TECHNICIAN</span>';
+        scan.style.display = 'none';
+        btnText.innerText = 'Restore Stream (CAM-03)';
+
+        log.innerHTML = `<div class="text-rose-400 font-bold">[${time}] CRITICAL: RTSP stream drop detected on CAM-03 (192.168.20.103) in Server Room NOC! Telegram alert dispatched to IT Ops.</div>` + log.innerHTML;
+      } else {
+        cam3.className = 'relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden aspect-video shadow-lg group transition-all';
+        dot.className = 'size-2 rounded-full bg-emerald-400 animate-ping';
+        statusText.innerText = 'REC';
+        statusText.className = 'font-bold text-emerald-400';
+        specs.innerText = '4MP QHD · 30 FPS · 4096 Kbps';
+        specs.className = 'bg-black/70 px-2 py-1 rounded border border-white/10 text-[11px] text-cyan-300';
+        center.innerHTML = '<i class="fa-solid fa-server text-4xl mb-2 text-slate-500"></i><span class="font-mono text-xs tracking-widest text-slate-400">CORE SERVER RACK & UPS MONITORED</span>';
+        scan.style.display = 'block';
+        btnText.innerText = 'Simulate Stream Drop (CAM-03)';
+
+        log.innerHTML = `<div class="text-emerald-400 font-bold">[${time}] RECOVERY: RTSP stream re-established on CAM-03 (192.168.20.103). Video recording resumed.</div>` + log.innerHTML;
+      }
+    }
+
+    function resetStreams() {
+      if (isDropped) toggleStreamDrop();
+    }
+
+    // Initial run
+    calculateStorage();
+  </script>
+</body>
+</html>
